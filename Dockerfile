@@ -29,26 +29,22 @@ RUN apt-get update \
     wait-for-it \
     && rm -rf /var/lib/apt/lists/*
 
-RUN groupadd -r -g 999 warfork && useradd -r -m -g warfork -u 999 warfork
+RUN useradd -d /var/warfork -r -m warfork
 
 USER warfork
-
-RUN mkdir /home/warfork/Steam
-
-WORKDIR /home/warfork/Steam
-
+RUN mkdir /var/warfork/Steam ; mkdir /var/warfork/server
+WORKDIR /var/warfork/Steam
 RUN wget -qO- https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz | tar zxf -
+RUN /var/warfork/Steam/steamcmd.sh +quit
+RUN /var/warfork/Steam/steamcmd.sh \
+    +login anonymous \
+    +force_install_dir /var/warfork/server \
+    +app_update 1136510 validate \
+    +quit
 
-RUN /home/warfork/Steam/steamcmd.sh +quit
-
-WORKDIR /home/warfork
-
-RUN mkdir server
-
+WORKDIR /var/warfork
 COPY entrypoint.sh /usr/local/bin/
-
 COPY entrypointtv.sh /usr/local/bin/
 
-WORKDIR /home/warfork/server/Warfork.app/Contents/Resources
-
+WORKDIR /var/warfork/server/Warfork.app/Contents/Resources
 CMD [ "bash", "/usr/local/bin/entrypoint.sh" ]
